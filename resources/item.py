@@ -1,6 +1,6 @@
 from sqlite3.dbapi2 import connect
 from flask_restful import Resource, reqparse
-from flask_jwt import jwt_required
+from flask_jwt_extended import jwt_required, get_jwt
 from sqlalchemy.orm import query
 from models.item import ItemModel
 
@@ -40,7 +40,11 @@ class Item(Resource):
 
         return item.json(), 201
 
+    @jwt_required()
     def delete(self, name):
+        claims = get_jwt()
+        if not claims['is_admin']:
+            return {'message': 'Admin privilege required.'}, 401
         item = ItemModel.find_by_name(name)
         if item:
             item.delete_from_db()
@@ -50,7 +54,7 @@ class Item(Resource):
     def put(self, name):
         data = Item.parser.parse_args()
         item = ItemModel.find_by_name(name)
-        updated_item = ItemModel(name, **data)
+        # updated_item = ItemModel(name, **data)
 
         if not item:
             try:
@@ -61,12 +65,12 @@ class Item(Resource):
         else:
             try:
                 item.price = data['price']
-                item.store_id = data['store_id']
+                # item.store_id = data['store_id']
             except:
                 return {"message": "An error occured updating the item."}, 500 
 
         item.save_to_db()
-        return updated_item.json()
+        return item.json()
         
 
 class Item_List(Resource):

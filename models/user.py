@@ -11,7 +11,13 @@ class UserModel(db.Model):
     def __init__(self, username, password) -> None:
         self.username = username
         self.password = password
-    
+        
+    def json(self):
+        return {
+            "id": self.id,
+            "username": self.username
+        }
+
     def __repr__(self) -> str:
         return f"<{self.id} {self.username} {self.password}>"
 
@@ -28,5 +34,5 @@ class UserModel(db.Model):
         db.session.commit()
 
     def delete_from_db(self):
-        db.session.delte(self)
+        db.session.delete(self)
         db.session.commit()
